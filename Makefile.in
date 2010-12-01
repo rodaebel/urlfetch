@@ -1,0 +1,13 @@
+all:
+	@mkdir -p ebin
+	@(cd src;$(MAKE))
+
+edoc:
+	@(cd src;$(MAKE) edoc)
+
+clean:
+	@(cd src;$(MAKE) clean)
+
+distclean: clean
+	rm -f config.log Makefile
+	rm -rf ebin
