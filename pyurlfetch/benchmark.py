@@ -1,6 +1,7 @@
 from pyurlfetch.urlfetch import URLFetchClient
 from urllib2 import urlopen
 import random
+import sys
 import time
 
 urls = [
@@ -11,7 +12,7 @@ urls = [
     "http://code.google.com",
     "http://www.w3.org",
     "http://dev.mysql.com",
-    "http://www.debian.org",
+    "http://www.apple.com",
     "http://www.gnustep.org",
     "http://developer.twitter.com",
 ]
@@ -23,11 +24,13 @@ def runUrllib2(urls):
     Args:
         urls: List of URLs.
     """
+    results = []
     start = time.time()
     for url in urls:
         urlopen(url)
     end = time.time()
-    print "urllib2", "\t", round(end-start, 3), 's'
+    results.append(round(end-start, 3))
+    return results
 
 
 def runUrlFetch(urls):
@@ -36,20 +39,23 @@ def runUrlFetch(urls):
     Args:
         urls: List of URLs.
     """
+    results = []
     client = URLFetchClient()
     ids = []
     start = time.time()
     for url in urls:
         ids.append(client.start_fetch(url))
-
     for Id in ids:
         client.get_result(Id)
     end = time.time()
-    print "urlfetch", "\t", round(end-start, 3), 's'
+    results.append(round(end-start, 3))
     client.close()
+    return results
 
 
 if __name__ == "__main__":
+
+    table = []
 
     for i in range(len(urls)):
         i+=1
@@ -57,10 +63,19 @@ if __name__ == "__main__":
         # Shuffle the URLs
         random.shuffle(urls)
 
-        print "fetching %i URL(s):" % i
-
         # Testing urllib2
-        runUrllib2(urls[:i])
+        a = runUrllib2(urls[:i])
 
         # Testing Urlfetch Service
-        runUrlFetch(urls[:i])
+        b = runUrlFetch(urls[:i])
+
+        table += zip(a, b)
+
+        sys.stderr.write('.')
+
+    sys.stderr.write('\n')
+
+    print("urllib2;urlfetch")
+
+    for row in table:
+        print("%.3f;%.3f" % row)
