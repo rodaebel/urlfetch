@@ -11,10 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Scipt to make benchmarks of pyurlfetch.
-
-Requires Python 2.6 or greater.
-"""
+"""Benchmark script for pyurlfetch."""
 
 from pyurlfetch.urlfetch import URLFetchClient
 from urllib2 import urlopen
@@ -109,7 +106,7 @@ if __name__ == "__main__":
         # Testing concurrent urllib2 requests (multiprocessing)
         b = runMultiUrllib2(urls[:i])
 
-        # Testing Urlfetch Service
+        # Testing the URL Fetch Service (pyurlfetch)
         c = runUrlFetch(urls[:i])
 
         table += zip(a, b, c)
