@@ -41,12 +41,12 @@ init([]) ->
 %% Notification event coming from client
 'AWAIT_DATA'({data, Data}, #state{socket=S} = State) ->
     case urlfetch_rpc_parser:parse(Data) of
-        {request, <<"FETCH_ASYNC">>, MethodString, Url} ->
+        {request, <<"FETCH_ASYNC">>, MethodString, Url, Payload} ->
             Id = urlfetch_uuid:new(),
             error_logger:info_msg("~p Fetching ~p.~n", [self(), Url]),
             {ok, [{atom, 1, Method}], 1} = erl_scan:string(
                                                 binary_to_list(MethodString)),
-            case urlfetch_async:fetch({Id, Method, binary_to_list(Url)}) of
+            case urlfetch_async:fetch({Id, Method, binary_to_list(Url), binary_to_list(Payload)}) of
                 ok -> gen_tcp:send(S, Id);
                 error -> gen_tcp:send(S, <<"ERROR">>)
             end,

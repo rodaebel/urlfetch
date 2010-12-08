@@ -106,20 +106,23 @@ class URLFetchClient(object):
             self._socket.close()
         self._socket = None
 
-    def start_fetch(self, url, method="get"):
+    def start_fetch(self, url, payload="", method="get", headers={}):
         """Initiate an URL Fetch call.
 
         Args:
-            url: The url.
+            url: A HTTP or HTTPS URL.
+            payload: Body content for a POST or PUT request.
             method: The HTTP method.
+            headers: Dictionary with HTTP headers to include with the request.
 
         Returns:
             String containing the fetch call id.
         """
         if self._socket is None:
             self._open()
-        self._socket.send(command("FETCH_ASYNC", method, url))
-        res = self._socket.recv(64)
+        method = method.lower()
+        self._socket.send(command("FETCH_ASYNC", method, url, payload))
+        res = self._socket.recv(32)
         if res == ERROR:
             raise DownloadError 
         logging.debug("Fetching %s - %s", url, res)

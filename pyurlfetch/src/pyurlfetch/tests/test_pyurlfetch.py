@@ -15,11 +15,66 @@
 # limitations under the License.
 """Unit tests for the pyurlfetch library."""
 
+import BaseHTTPServer
+import SimpleHTTPServer
+import cgi
+import httplib
 import logging
+import threading
 import time
 import unittest
 
 LOG_FORMAT = '%(levelname)-8s %(asctime)s %(filename)s:%(lineno)s] %(message)s'
+
+
+class StoppableHttpRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
+    """HTTP request handler with QUIT stopping the server."""
+
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header("Content-Type", "text/plain")
+        self.send_header("Content-Length", 10)
+        self.end_headers()
+        self.request.send("pyurlfetch")
+
+    def do_POST(self):
+        length = int(self.headers.getheader("Content-Length") or 0)
+        data = self.rfile.read(length)
+        self.send_response(200)
+        self.send_header("Content-Type", "text/plain")
+        self.send_header("Content-Length", length)
+        self.end_headers()
+        self.request.send(data)
+
+    def do_QUIT(self):
+        """Sends 200 OK response, and sets server.stop to True."""
+
+        self.send_response(200)
+        self.end_headers()
+        self.server.stop = True
+
+    def log_request(self, *args):
+        """Suppress any log messages for testing."""
+
+
+class StoppableHttpServer(BaseHTTPServer.HTTPServer):
+    """HTTP server that reacts to self.stop flag."""
+
+    def serve_forever(self):
+        """Handles one request at a time until stopped."""
+
+        self.stop = False
+        while not self.stop:
+            self.handle_request()
+
+
+def stop_server(port):
+    """Send QUIT request to HTTP server running on localhost:<port>."""
+
+    conn = httplib.HTTPConnection("localhost:%d" % port)
+    conn.request("QUIT", "/")
+    conn.getresponse()
+    conn.close()
 
 
 class TestUrlFetch(unittest.TestCase):
@@ -113,3 +168,27 @@ class TestUrlFetch(unittest.TestCase):
         client.close()
 
         self.assertEqual(3, len(data))
+
+    def test_post(self):
+        """POSTing data with the low-level URL Fetch Client API."""
+
+        from pyurlfetch.urlfetch import DownloadError, URLFetchClient
+
+        # Setting up a test HTTP server
+        server = StoppableHttpServer(
+            ('localhost', 9876), StoppableHttpRequestHandler)
+        server_thread = threading.Thread(target=server.serve_forever)
+        server_thread.setDaemon(True)
+        server_thread.start()
+
+        # Instantiating the client
+        client = URLFetchClient()
+
+        # We make a POST request with payload
+        fid = client.start_fetch(
+            "http://localhost:9876", payload="foobar", method="POST")
+        data = client.get_result(fid)
+
+        self.assertEqual((200, "foobar"), data)
+
+        stop_server(9876)
