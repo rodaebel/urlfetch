@@ -16,11 +16,12 @@
 from pyurlfetch.urlfetch import URLFetchClient
 from urllib2 import urlopen
 import multiprocessing
+import optparse
 import random
 import sys
 import time
 
-urls = [
+URLs = [
     "http://blog.typhoonae.org",
     "http://www.erlang.org",
     "http://www.trapexit.org",
@@ -31,7 +32,12 @@ urls = [
     "http://www.apple.com",
     "http://www.gnustep.org",
     "http://developer.twitter.com",
-]
+    "http://code.google.com/p/urlfetch",
+    "http://stackoverflow.com",
+    "http://git-scm.com",
+    "http://hgbook.red-bean.com",
+    "http://www.sgi.com/tech/stl",
+] * 2
 
 
 def runUrllib2(urls):
@@ -92,12 +98,38 @@ def runUrlFetch(urls):
 
 if __name__ == "__main__":
 
+    op = optparse.OptionParser(usage="usage: %prog [-h] [offset|limit] [limit]")
+
+    (options, args) = op.parse_args()
+
+    argc = len(args)
+    urlc = len(URLs)
+
+    offset = 1
+    limit = urlc
+
+    try:
+        if argc == 1:
+            limit = int(args[0])
+        elif argc == 2:
+            offset, limit = (int(args[0]), int(args[1]))
+    except ValueError, e:
+        op.error(e)
+
+    if offset > urlc:
+        op.error("out of range")
+
+    end = offset + limit - 1
+
+    if end > urlc:
+        end = urlc
+
     table = []
 
-    for i in range(len(urls)):
-        i+=1
+    for i in range(offset, end+1):
 
         # Shuffle the URLs
+        urls = URLs[:]
         random.shuffle(urls)
 
         # Testing urllib2
@@ -115,7 +147,7 @@ if __name__ == "__main__":
 
     sys.stderr.write('\n')
 
-    print("urllib2;multiurllib2;urlfetch")
+    print("urllib2;multiurllib2;pyurlfetch")
 
     for row in table:
         print("%.3f;%.3f;%.3f" % row)
