@@ -21,6 +21,8 @@ import random
 import sys
 import time
 
+USAGE = "usage: %prog [-h] [limit|offset limit]"
+
 URLs = [
     "http://blog.typhoonae.org",
     "http://www.erlang.org",
@@ -98,7 +100,7 @@ def runUrlFetch(urls):
 
 if __name__ == "__main__":
 
-    op = optparse.OptionParser(usage="usage: %prog [-h] [offset|limit] [limit]")
+    op = optparse.OptionParser(usage=USAGE)
 
     (options, args) = op.parse_args()
 
