@@ -9,6 +9,12 @@
 parse(<<CLen:8/unsigned, Command:CLen/binary,
         A1Len:8/unsigned, Arg1:A1Len/binary,
         A2Len:8/unsigned, Arg2:A2Len/binary,
+        A3Len:8/unsigned, Arg3:A3Len/binary,
+        Rest/binary>>) ->
+    {request, Command, Arg1, Arg2, Arg3, Rest};
+parse(<<CLen:8/unsigned, Command:CLen/binary,
+        A1Len:8/unsigned, Arg1:A1Len/binary,
+        A2Len:8/unsigned, Arg2:A2Len/binary,
         Rest/binary>>) ->
     {request, Command, Arg1, Arg2, Rest};
 parse(<<CLen:8/unsigned, Command:CLen/binary,
@@ -23,6 +29,8 @@ parse(Bin) ->
 %% Unit tests.
 parse_test() ->
     %% Correct protocol
+    ?assert(parse(<<4, "TEST", 3, "foo", 3, "bar", 2, ":)", "test">>) =:=
+            {request, <<"TEST">>, <<"foo">>, <<"bar">>, <<":)">>, <<"test">>}),
     ?assert(parse(<<4, "TEST", 3, "foo", 3, "bar", "test">>) =:=
             {request, <<"TEST">>, <<"foo">>, <<"bar">>, <<"test">>}),
     ?assert(parse(<<4, "TEST", 3, "foo", "bar">>) =:=

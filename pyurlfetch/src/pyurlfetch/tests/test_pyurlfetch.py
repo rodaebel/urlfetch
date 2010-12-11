@@ -107,6 +107,21 @@ class TestUrlFetch(unittest.TestCase):
         self.assertEqual('\x03footest', command('foo', 'test'))
         self.assertEqual('\x03foo\x04testbar', command('foo', 'test', 'bar'))
 
+    def test_headers(self):
+        """Encodes/decodes HTTP headers."""
+
+        headers = {'Content-Type': 'text/plain', 'X-Custom-Header': 'foobar'}
+
+        from pyurlfetch.urlfetch import encode_headers, decode_headers
+
+        self.assertEqual(
+            'Content-Type: text/plain\nX-Custom-Header: foobar',
+            encode_headers(headers))
+
+        self.assertEqual(
+            {'Content-Type': 'text/plain', 'X-Custom-Header': 'foobar'},
+            decode_headers(encode_headers(headers)))
+
     def test_fetch(self):
         """Testing the low-level URL Fetch Client API."""
 
@@ -184,11 +199,14 @@ class TestUrlFetch(unittest.TestCase):
         # Instantiating the client
         client = URLFetchClient()
 
-        # We make a POST request with payload
+        # We make a POST request with payload and a custom header
         fid = client.start_fetch(
-            "http://localhost:9876", payload="foobar", method="POST")
-        data = client.get_result(fid)
+            "http://localhost:9876",
+            payload="foobar",
+            method="POST",
+            headers={'X-Custom-Header': 'value'})
 
-        self.assertEqual((200, "foobar"), data)
+        self.assertEqual((200, "foobar"), client.get_result(fid))
 
+        # Stop the test HTTP server
         stop_server(9876)

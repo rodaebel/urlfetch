@@ -83,6 +83,33 @@ def read_int4(s):
         return l4
 
 
+def encode_headers(headers):
+    """Encodes HTTP headers.
+
+    Args:
+        headers: Dictionary of HTTP headers.
+
+    Returns:
+        String containing encoded HTTP headers.
+    """
+    return '\n'.join(["%s: %s"%(k,headers[k]) for k in sorted(headers.keys())])
+
+
+def decode_headers(headers):
+    """Decode HTTP headers.
+
+    Args:
+        headers: String containing encoded HTTP headers.
+
+    Returns:
+        Dictionary of HTTP headers.
+    """
+    def strip(l):
+        a, b = l
+        return (a.strip(), b.strip())
+    return dict([strip(h.split(':')) for h in headers.split('\n')])
+
+
 class URLFetchClient(object):
     """Simple client for the URL Fetch Service."""
 
@@ -121,7 +148,8 @@ class URLFetchClient(object):
         if self._socket is None:
             self._open()
         method = method.lower()
-        self._socket.send(command("FETCH_ASYNC", method, url, payload))
+        headers = encode_headers(headers)
+        self._socket.send(command("FETCH_ASYNC", method, url, payload, headers))
         res = self._socket.recv(32)
         if res == ERROR:
             raise DownloadError 
