@@ -35,11 +35,11 @@ URLs = [
     "http://www.gnustep.org",
     "http://developer.twitter.com",
     "http://code.google.com/p/urlfetch",
-    "http://stackoverflow.com",
+    "http://www.debian.com",
     "http://git-scm.com",
     "http://hgbook.red-bean.com",
     "http://www.sgi.com/tech/stl",
-] * 2
+]
 
 
 def runUrllib2(urls):
