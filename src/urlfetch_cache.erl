@@ -67,10 +67,10 @@ store(Record) ->
 
     error_logger:info_msg("~p Inserting data for ~p.~n", [self(), Id]),
 
-    case ets:match(cache_table, {Id, '$1', '$2', false, Timestamp}) of
+    case ets:match(cache_table, {Id, '$1', '$2', false, '$3'}) of
         [] ->
             ets:insert(cache_table, {Id, Status, Data, false, Timestamp});
-        [[_, OldData]] ->
+        [[_, OldData, _]] ->
             ets:insert(
                 cache_table,
                 {Id, Status, <<OldData/binary, Data/binary>>, Complete, Timestamp})
