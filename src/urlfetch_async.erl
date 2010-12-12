@@ -6,11 +6,7 @@
 
 
 fetch({Id, Method, Url, Payload, Headers}) when(Method=:=get) orelse(Method=:=post) ->
-    Record = #cache{id=Id,
-                    status_code=200,
-                    data=?EMPTY,
-                    complete=false,
-                    timestamp=urlfetch_cache:timestamp()},
+    Record = #cache{id=Id, timestamp=urlfetch_cache:timestamp()},
     process_record(Record),
     spawn(urlfetch_async, fetch,
           [Id, Url, Method, Payload, Headers, ?RETRY_COUNT, ?RETRY_TIMEOUT]),
@@ -68,7 +64,9 @@ receive_chunk(Id, ReqId) ->
         {http, {ReqId, {error, Reason}}} when(Reason =:= etimedout) orelse(Reason =:= timeout) -> 
             {error, timeout};
         {http, {ReqId, {{_, 401, _} = Status, Headers, _}}} -> 
-            Record = #cache{id=Id, status_code=401, data=?EMPTY, complete=true, timestamp=urlfetch_cache:timestamp()},
+            Record = #cache{
+                id=Id, status_code=401, complete=true,
+                timestamp=urlfetch_cache:timestamp()},
             process_record(Record),
             {error, unauthorized, {Status, Headers}};
         {http, {ReqId, Result}} -> 
@@ -76,15 +74,19 @@ receive_chunk(Id, ReqId) ->
         {http, {ReqId, stream_start, Headers}} ->
             EncodedHeaders = list_to_binary(
                 urlfetch_http:encode_headers(Headers) ++ "\n\n"),
-            Record = #cache{id=Id, data=EncodedHeaders, complete=false, timestamp=urlfetch_cache:timestamp()},
+            Record = #cache{
+                id=Id, data=EncodedHeaders,
+                timestamp=urlfetch_cache:timestamp()},
             process_record(Record),
             receive_chunk(Id, ReqId);
         {http, {ReqId, stream, Data}} ->
-            Record = #cache{id=Id, data=Data, complete=false, timestamp=urlfetch_cache:timestamp()},
+            Record = #cache{
+                id=Id, data=Data, timestamp=urlfetch_cache:timestamp()},
             process_record(Record),
             receive_chunk(Id, ReqId);
         {http, {ReqId, stream_end, _Headers}} ->
-            Record = #cache{id=Id, data=?EMPTY, complete=true, timestamp=urlfetch_cache:timestamp()},
+            Record = #cache{
+                id=Id, complete=true, timestamp=urlfetch_cache:timestamp()},
             process_record(Record),
             {ok, ReqId}
  

@@ -12,6 +12,6 @@
 
 -define(RETRY_TIMEOUT, 5000).
 
--record(cache, {id, status_code=200, data, complete, timestamp}).
-
 -define(EMPTY, <<"">>).
+
+-record(cache, {id, status_code=200, data=?EMPTY, complete=false, timestamp}).
