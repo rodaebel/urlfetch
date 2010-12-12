@@ -73,7 +73,11 @@ receive_chunk(Id, ReqId) ->
             {error, unauthorized, {Status, Headers}};
         {http, {ReqId, Result}} -> 
             {error, Result};
-        {http, {ReqId, stream_start, _Headers}} ->
+        {http, {ReqId, stream_start, Headers}} ->
+            EncodedHeaders = list_to_binary(
+                urlfetch_http:encode_headers(Headers) ++ "\n\n"),
+            Record = #cache{id=Id, data=EncodedHeaders, complete=false, timestamp=urlfetch_cache:timestamp()},
+            process_record(Record),
             receive_chunk(Id, ReqId);
         {http, {ReqId, stream, Data}} ->
             Record = #cache{id=Id, data=Data, complete=false, timestamp=urlfetch_cache:timestamp()},

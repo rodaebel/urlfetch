@@ -14,6 +14,4 @@
 
 -record(cache, {id, status_code=200, data, complete, timestamp}).
 
--define(USER_AGENT, "Urlfetch/1.0").
-
 -define(EMPTY, <<"">>).

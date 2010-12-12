@@ -107,7 +107,7 @@ def decode_headers(headers):
     def strip(l):
         a, b = l
         return (a.strip(), b.strip())
-    return dict([strip(h.split(':')) for h in headers.split('\n')])
+    return dict([strip(h.split(':', 1)) for h in headers.split('\n')])
 
 
 class URLFetchClient(object):
@@ -147,13 +147,18 @@ class URLFetchClient(object):
         """
         if self._socket is None:
             self._open()
+
         method = method.lower()
-        headers = encode_headers(headers)
+
         self._socket.send(command("FETCH_ASYNC", method, url, payload, headers))
+
         res = self._socket.recv(32)
+
         if res == ERROR:
             raise DownloadError 
+
         logging.debug("Fetching %s - %s", url, res)
+
         return res
 
     def get_result(self, fid, nowait=False):
@@ -169,22 +174,35 @@ class URLFetchClient(object):
             Results of the URL Fetch call.
         """
         logging.debug("Getting results for %s", fid)
+
         body = ''
+
         if self._socket is None:
             self._open()
+
         if nowait:
             self._socket.send(command("GET_RESULT_NOWAIT", fid))
         else:
             self._socket.send(command("GET_RESULT", fid))
+
         while True:
             data = self._socket.recv(MAX_CHUNK_SIZE)
+
             if not body:
                 status_code = read_int4(data[:4])
                 data = data[4:]
+
             if not data or data in (NOT_FOUND,):
                 raise DownloadError
             elif data.endswith(TERMINATOR):
                 body += data[:-len(TERMINATOR)]
                 break
+
             body += data
-        return (status_code, body)
+
+        try:
+            headers, body = body.split('\n\n', 1)
+        except ValueError:
+            raise DownloadError
+
+        return (status_code, body, decode_headers(headers))

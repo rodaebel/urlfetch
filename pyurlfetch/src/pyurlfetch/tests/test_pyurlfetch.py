@@ -202,11 +202,14 @@ class TestUrlFetch(unittest.TestCase):
         # We make a POST request with payload and a custom header
         fid = client.start_fetch(
             "http://localhost:9876",
-            payload="foobar",
+            payload=u"Très bien".encode("utf-8"),
             method="POST",
             headers={'X-Custom-Header': 'value'})
 
-        self.assertEqual((200, "foobar"), client.get_result(fid))
+        code, body, headers = client.get_result(fid)
+        self.assertEqual(200, code)
+        self.assertEqual(u"Très bien", body.decode("utf-8"))
+        self.assertEqual(10, int(headers['content-length']))
 
         # Stop the test HTTP server
         stop_server(9876)

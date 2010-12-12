@@ -90,10 +90,10 @@ delete(Id) ->
 
 fetch(Id) ->
     %% error_logger:info_msg("~p Looking up data for ~p.~n", [self(), Id]),
-    case ets:match(cache_table, {Id, '$1', '$2', '$3', '$4'}) of
+    case ets:lookup(cache_table, Id) of
         [] ->
             not_found;
-        [[Status, Data, Complete, _]] ->
+        [{_, Status, Data, Complete, _}] ->
             case Complete of
                 true ->
                     {ok, {Status, Data}};
