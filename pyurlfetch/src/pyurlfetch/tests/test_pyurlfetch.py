@@ -43,6 +43,9 @@ class StoppableHttpRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
         self.send_response(200)
         self.send_header("Content-Type", "text/plain")
         self.send_header("Content-Length", length)
+        self.send_header(
+            "X-Custom-Header",
+            self.headers.getheader("X-Custom-Header"))
         self.end_headers()
         self.request.send(data)
 
@@ -210,6 +213,7 @@ class TestUrlFetch(unittest.TestCase):
         self.assertEqual(200, code)
         self.assertEqual(u"Très bien", body.decode("utf-8"))
         self.assertEqual(10, int(headers['content-length']))
+        self.assertEqual('value', headers['x-custom-header'])
 
         # Stop the test HTTP server
         stop_server(9876)

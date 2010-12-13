@@ -150,6 +150,8 @@ class URLFetchClient(object):
 
         method = method.lower()
 
+        headers = encode_headers(headers)
+
         self._socket.send(command("FETCH_ASYNC", method, url, payload, headers))
 
         res = self._socket.recv(32)
