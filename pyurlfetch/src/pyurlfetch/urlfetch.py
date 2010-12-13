@@ -15,6 +15,8 @@
 # limitations under the License.
 """URL Fetch client."""
 
+__all__ = ["DownloadError"]
+
 import logging
 import operator
 import os

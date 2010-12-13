@@ -15,4 +15,4 @@
 # limitations under the License.
 """The pyurlfetch package."""
 
-from urlfetch import DownloadError
+from urlfetch import *
