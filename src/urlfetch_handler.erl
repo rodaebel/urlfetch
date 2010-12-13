@@ -48,7 +48,7 @@ init([]) ->
                                                 binary_to_list(MethodString)),
             Result = urlfetch_async:fetch({
                 Id, Method, binary_to_list(Url), binary_to_list(Payload),
-                urlfetch_http:decode_headers(binary_to_list(Headers))}),
+                urlfetch_http:decode_headers(Headers)}),
             case Result of
                 ok ->
                     gen_tcp:send(S, Id);

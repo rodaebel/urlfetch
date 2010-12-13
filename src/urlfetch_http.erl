@@ -14,6 +14,8 @@ encode_headers(Headers) ->
     string:join(L, "\n").
 
 
+decode_headers(Bin) when is_binary(Bin) ->
+  decode_headers(binary_to_list(Bin));
 decode_headers(String) ->
   decode_headers(String, [], []).
 
@@ -36,5 +38,6 @@ encode_headers_test() ->
     ?assert(encode_headers([{"Content-Type","text/plain"},{"Content-Length","42"}]) =:= "Content-Type: text/plain\nContent-Length: 42").
 
 decode_headers_test() ->
+    ?assert(decode_headers(<<"Content-Type: text/plain">>) =:= [{"Content-Type","text/plain"}]),
     ?assert(decode_headers("Content-Type: text/plain") =:= [{"Content-Type","text/plain"}]),
     ?assert(decode_headers("Content-Type: text/plain\nX-Custom-Header: foobar (1)") =:= [{"Content-Type","text/plain"},{"X-Custom-Header","foobar (1)"}]).
