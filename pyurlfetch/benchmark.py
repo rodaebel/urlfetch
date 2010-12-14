@@ -88,8 +88,9 @@ def runUrlFetch(urls):
     client = URLFetchClient()
     ids = []
     start = time.time()
+    headers = {'User-Agent': 'urlfetch/1.0'}
     for url in urls:
-        ids.append(client.start_fetch(url))
+        ids.append(client.start_fetch(url, headers=headers))
     for Id in ids:
         client.get_result(Id)
     end = time.time()
