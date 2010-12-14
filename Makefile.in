@@ -1,6 +1,9 @@
+PYTHON= @PYTHON@
+
 all:
 	@mkdir -p ebin
 	@(cd src;$(MAKE))
+	@(cd pyurlfetch; $(MAKE) PYTHON=$(PYTHON))
 
 edoc:
 	@(cd src;$(MAKE) edoc)
@@ -11,3 +14,4 @@ clean:
 distclean: clean
 	rm -f config.log Makefile
 	rm -rf ebin
+	@(cd pyurlfetch; $(MAKE) distclean)

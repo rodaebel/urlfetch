@@ -42,10 +42,14 @@ do
       cat << EOF
 
 Options:
-   -h,--help    display this message
+   -h,--help                display this message
+      --with-python=PATH    use this Python interpreter
 
 EOF
    exit 0;;
+
+   --with-python=*)
+      PYTHON="$_optarg" ;;
 
    --* | -* ) { echo "$BASENAME: error: $_option: invalid option; use --help to show usage" 1>&2; exit 1; };;
    * )
@@ -62,22 +66,36 @@ $ $0 $@
 EOF
 
 #
-# Check erlang version
+# Check Erlang version
 #
 log "checking for Erlang OTP version ... "
 ERL_PATH=`which erl`
 if [ "$ERL_PATH" = "" ]; then
-    error_exit 1 "no Erlang (BEAM) emulator found";
+   error_exit 1 "no Erlang (BEAM) emulator found";
 fi
 OTP_RELEASE=`erl -noshell -eval 'io:fwrite(erlang:system_info(otp_release)), init:stop().'`
 log "${OTP_RELEASE}\n"
+
+#
+# Check Python version
+#
+if [ "$PYTHON" = "" ]; then
+   PYTHON=`which python`
+fi
+log "checking for Python version ... "
+if [ "$PYTHON" = "" ]; then
+   error_exit 1 "no Python interpreter found";
+fi
+PYTHON_VERSION=`${PYTHON} -c "import sys; print ('%s.%s.%s'%sys.version_info[:3])"`
+log "${PYTHON_VERSION}\n"
 
 #
 # Create makefile
 #
 log "creating: Makefile\n";
 cat Makefile.in | sed \
-   -e "s,@PACKAGE@,${PACKAGE}," \
-   > Makefile
+  -e "s,@PACKAGE@,${PACKAGE}," \
+  -e "s,@PYTHON@,${PYTHON}," \
+  > Makefile
 
 exit 0;

@@ -3,15 +3,17 @@ syntax: glob
 *.egg-info
 *.pyc
 *.swp
+.coverage
 .installed.cfg
-Makefile
 config.log
 
 
 syntax: regexp
 
+^Makefile
 ^ebin/
 ^pyurlfetch/bin
 ^pyurlfetch/develop-eggs/
 ^pyurlfetch/eggs/
+^pyurlfetch/htmlcov/
 ^pyurlfetch/parts/
