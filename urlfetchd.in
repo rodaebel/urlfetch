@@ -67,9 +67,9 @@ ERL_OPTS="
     -s urlfetch"
 
 if [ "$MONITOR" = "false" ]; then
-    exec erl $ERL_OPTS $DETACHED_OPTION start -noshell -s urlfetch
+    exec $ERL $ERL_OPTS $DETACHED_OPTION start -noshell -s urlfetch
 else
-    exec erl $ERL_OPTS -boot start_sasl -run appmon start -s urlfetch
+    exec $ERL $ERL_OPTS -boot start_sasl -run appmon start -s urlfetch
 fi
 
 exit 0;
