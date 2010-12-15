@@ -76,7 +76,7 @@ if [ "$ERL" = "" ]; then
    ERL=`which erl`
 fi
 log "checking for Erlang OTP version ... "
-if [ "$ERL" = "" ]; then
+if (! `test -x "$ERL"` || [ "$ERL" = "" ]); then
    error_exit 1 "no Erlang (BEAM) emulator found";
 fi
 OTP_RELEASE=`${ERL} -noshell -eval 'io:fwrite(erlang:system_info(otp_release)), init:stop().'`
@@ -89,7 +89,7 @@ if [ "$PYTHON" = "" ]; then
    PYTHON=`which python`
 fi
 log "checking for Python version ... "
-if [ "$PYTHON" = "" ]; then
+if (! `test -x "$PYTHON"` || [ "$PYTHON" = "" ]); then
    error_exit 1 "no Python interpreter found";
 fi
 PYTHON_VERSION=`${PYTHON} -c "import sys; print ('%s.%s.%s'%sys.version_info[:3])"`
