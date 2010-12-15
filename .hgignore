@@ -11,6 +11,7 @@ config.log
 syntax: regexp
 
 ^Makefile
+^bin/
 ^ebin/
 ^pyurlfetch/bin
 ^pyurlfetch/develop-eggs/
