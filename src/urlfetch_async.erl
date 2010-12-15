@@ -5,15 +5,12 @@
 -include("urlfetch.hrl").
 
 
-fetch({Id, Method, Url, Payload, Headers}) when(Method=:=get) orelse(Method=:=post) orelse(Method=:=head) ->
+fetch({Id, Method, Url, Payload, Headers}) ->
     Record = #cache{id=Id, timestamp=urlfetch_cache:timestamp()},
     process_record(Record),
     spawn(urlfetch_async, fetch,
           [Id, Url, Method, Payload, Headers, ?RETRY_COUNT, ?RETRY_TIMEOUT]),
-    ok;
-fetch({_, Method, _}) ->
-    error_logger:error_msg("Unknown method '~s'.~n", [Method]),
-    error.
+    ok.
 
  
 fetch(Id, Url, Method, Payload, Headers, Retry, Sleep) when Retry > 0 ->
@@ -92,7 +89,7 @@ receive_chunk(Id, ReqId) ->
             process_record(Record),
             {ok, ReqId}
  
-        after 10*1000 ->
+        after 10 * 1000 ->
             {error, timeout}
     end.
 
