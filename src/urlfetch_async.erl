@@ -5,7 +5,7 @@
 -include("urlfetch.hrl").
 
 
-fetch({Id, Method, Url, Payload, Headers}) when(Method=:=get) orelse(Method=:=post) ->
+fetch({Id, Method, Url, Payload, Headers}) when(Method=:=get) orelse(Method=:=post) orelse(Method=:=head) ->
     Record = #cache{id=Id, timestamp=urlfetch_cache:timestamp()},
     process_record(Record),
     spawn(urlfetch_async, fetch,
@@ -19,6 +19,8 @@ fetch({_, Method, _}) ->
 fetch(Id, Url, Method, Payload, Headers, Retry, Sleep) when Retry > 0 ->
     case Method of
         get ->
+            Request = {Url, Headers};
+        head ->
             Request = {Url, Headers};
         post ->
             Request = {Url, Headers, "", Payload}

@@ -217,3 +217,20 @@ class TestUrlFetch(unittest.TestCase):
 
         # Stop the test HTTP server
         stop_server(9876)
+
+    def test_head(self):
+        """Tests a HEAD request."""
+       
+        from pyurlfetch.urlfetch import DownloadError, URLFetchClient
+
+        client = URLFetchClient()
+
+        fid = client.start_fetch(
+            "http://erlang.org/images/erlang-logo.png",
+            method="head", headers={"User-Agent": "pyurlfetch/0.1.0"})
+
+        code, body, headers = client.get_result(fid)
+
+        self.assertEqual(200, code)
+        self.assertTrue(len(body) is 0)
+        self.assertTrue('image/png', headers['content-type'])
