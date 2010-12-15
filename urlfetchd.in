@@ -6,6 +6,7 @@ BASENAME=`basename $0`
 MONITOR="false"
 DETACHED_OPTION=""
 COOKIE="cookie"
+ERL=@ERLANG@
 
 usage() {
    echo "Usage: $BASENAME [options]";

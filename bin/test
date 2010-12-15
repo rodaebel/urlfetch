@@ -1,7 +1,0 @@
-#!/bin/sh
-
-cd `dirname $0`;
-CWD=`dirname $PWD`;
-cd $PWD;
-
-erl -noshell -pa $CWD/ebin -eval 'eunit:test(urlfetch_rpc_parser), eunit:test(urlfetch_http), init:stop().'

@@ -2,7 +2,7 @@
 
 BASENAME=`basename $0`
 
-. config.ini
+. ./config.ini
 
 usage() {
    echo "Usage: $BASENAME [options]";
@@ -43,10 +43,14 @@ do
 
 Options:
    -h,--help                display this message
+      --with-erlang=PATH    use this Erlang (BEAM) emulator
       --with-python=PATH    use this Python interpreter
 
 EOF
    exit 0;;
+
+   --with-erlang=*)
+      ERL="$_optarg" ;;
 
    --with-python=*)
       PYTHON="$_optarg" ;;
@@ -68,12 +72,14 @@ EOF
 #
 # Check Erlang version
 #
+if [ "$ERL" = "" ]; then
+   ERL=`which erl`
+fi
 log "checking for Erlang OTP version ... "
-ERL_PATH=`which erl`
-if [ "$ERL_PATH" = "" ]; then
+if [ "$ERL" = "" ]; then
    error_exit 1 "no Erlang (BEAM) emulator found";
 fi
-OTP_RELEASE=`erl -noshell -eval 'io:fwrite(erlang:system_info(otp_release)), init:stop().'`
+OTP_RELEASE=`${ERL} -noshell -eval 'io:fwrite(erlang:system_info(otp_release)), init:stop().'`
 log "${OTP_RELEASE}\n"
 
 #
@@ -90,12 +96,35 @@ PYTHON_VERSION=`${PYTHON} -c "import sys; print ('%s.%s.%s'%sys.version_info[:3]
 log "${PYTHON_VERSION}\n"
 
 #
+# Create bin directory
+#
+mkdir -p bin
+
+#
+# Create test script
+#
+log "creating: bin/test\n";
+cat test.in | sed \
+   -e "s,@ERLANG@,${ERL}," \
+   > bin/test
+chmod 755 bin/test
+
+#
+# Create urlfetch script
+#
+log "creating: bin/urlfetchd\n";
+cat urlfetchd.in | sed \
+   -e "s,@ERLANG@,${ERL}," \
+   > bin/urlfetchd
+chmod 755 bin/urlfetchd
+
+#
 # Create makefile
 #
 log "creating: Makefile\n";
 cat Makefile.in | sed \
-  -e "s,@PACKAGE@,${PACKAGE}," \
-  -e "s,@PYTHON@,${PYTHON}," \
-  > Makefile
+   -e "s,@PACKAGE@,${PACKAGE}," \
+   -e "s,@PYTHON@,${PYTHON}," \
+   > Makefile
 
 exit 0;

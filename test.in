@@ -1,0 +1,9 @@
+#!/bin/sh
+
+ERL=@ERLANG@
+
+cd `dirname $0`;
+CWD=`dirname $PWD`;
+cd $PWD;
+
+$ERL -noshell -pa $CWD/ebin -eval 'eunit:test(urlfetch_rpc_parser), eunit:test(urlfetch_http), init:stop().'

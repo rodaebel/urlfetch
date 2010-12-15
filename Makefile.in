@@ -13,5 +13,6 @@ clean:
 
 distclean: clean
 	rm -f config.log Makefile
+	rm -rf bin
 	rm -rf ebin
 	@(cd pyurlfetch; $(MAKE) distclean)
