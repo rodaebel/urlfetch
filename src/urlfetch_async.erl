@@ -4,7 +4,7 @@
 
 -include("urlfetch.hrl").
 
--define(ALLOWED_METHODS, when(Method =:= get) orelse(Method =:= post) orelse(Method =:= head)).
+-define(ALLOWED_METHODS, when(Method =:= get) orelse(Method =:= post) orelse(Method =:= head) orelse(Method =:= put) orelse(Method =:= delete)).
 
 
 fetch({Id, Method, Url, Payload, Headers}) ?ALLOWED_METHODS ->
@@ -19,12 +19,10 @@ fetch(_) ->
  
 fetch(Id, Url, Method, Payload, Headers, Retry, Sleep) when Retry > 0 ->
     case Method of
-        get ->
-            Request = {Url, Headers};
-        head ->
-            Request = {Url, Headers};
-        post ->
-            Request = {Url, Headers, "", Payload}
+        Method when(Method =:= put) orelse(Method =:= post) ->
+            Request = {Url, Headers, "", Payload};
+        _ ->
+            Request = {Url, Headers}
     end,
     case httpc:request(Method, Request, [], [{sync, false}, {stream, self}]) of
         {ok, ReqId} ->

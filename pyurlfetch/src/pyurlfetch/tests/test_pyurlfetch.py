@@ -37,6 +37,14 @@ class StoppableHttpRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
         self.end_headers()
         self.request.send("pyurlfetch")
 
+    def do_PUT(self):
+        self.send_response(200)
+        self.end_headers()
+
+    def do_DELETE(self):
+        self.send_response(200)
+        self.end_headers()
+
     def do_POST(self):
         length = int(self.headers.getheader("Content-Length") or 0)
         data = self.rfile.read(length)
@@ -249,3 +257,35 @@ class TestUrlFetch(unittest.TestCase):
         self.assertEqual(200, code)
         self.assertTrue(len(body) is 0)
         self.assertTrue('image/png', headers['content-type'])
+
+    def test_put_delete(self):
+        """Tests PUT and DELETE."""
+
+        from pyurlfetch.urlfetch import DownloadError, URLFetchClient
+
+        # Setting up a test HTTP server
+        server = StoppableHttpServer(
+            ('localhost', 9876), StoppableHttpRequestHandler)
+        server_thread = threading.Thread(target=server.serve_forever)
+        server_thread.setDaemon(True)
+        server_thread.start()
+
+        # Instantiating the client
+        client = URLFetchClient()
+
+        # We make a PUT request with some payload
+        fid = client.start_fetch(
+            "http://localhost:9876", payload="foobar", method="PUT")
+
+        code, body, headers = client.get_result(fid)
+        self.assertEqual(200, code)
+
+        # We make a DELETE request
+        fid = client.start_fetch(
+            "http://localhost:9876", method="DELETE")
+
+        code, body, headers = client.get_result(fid)
+        self.assertEqual(200, code)
+
+        # Stop the test HTTP server
+        stop_server(9876)
