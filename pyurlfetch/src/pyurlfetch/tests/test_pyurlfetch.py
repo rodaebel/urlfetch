@@ -229,6 +229,10 @@ class TestUrlFetch(unittest.TestCase):
             "http://erlang.org/images/erlang-logo.png",
             method="head", headers={"User-Agent": "pyurlfetch/0.1.0"})
 
+        client.close()
+
+        client = URLFetchClient()
+
         code, body, headers = client.get_result(fid)
 
         self.assertEqual(200, code)

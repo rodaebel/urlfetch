@@ -192,7 +192,7 @@ class URLFetchClient(object):
         while True:
             data = self._socket.recv(MAX_CHUNK_SIZE)
 
-            if not body:
+            if not body and data:
                 status_code = read_int4(data[:4])
                 data = data[4:]
 
