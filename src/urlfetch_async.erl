@@ -8,8 +8,7 @@
 
 
 fetch({Id, Method, Url, Payload, Headers}) ?ALLOWED_METHODS ->
-    Record = #cache{id=Id, timestamp=urlfetch_cache:timestamp()},
-    process_record(Record),
+    timer:sleep(1),
     spawn(urlfetch_async, fetch,
           [Id, Url, Method, Payload, Headers, ?RETRY_COUNT, ?RETRY_TIMEOUT]),
     ok;
@@ -24,6 +23,8 @@ fetch(Id, Url, Method, Payload, Headers, Retry, Sleep) when Retry > 0 ->
         _ ->
             Request = {Url, Headers}
     end,
+    Record = #cache{id=Id, timestamp=urlfetch_cache:timestamp()},
+    process_record(Record),
     case httpc:request(Method, Request, [], [{sync, false}, {stream, self}]) of
         {ok, ReqId} ->
             case receive_chunk(Id, ReqId) of
