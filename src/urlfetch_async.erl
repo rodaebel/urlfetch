@@ -4,13 +4,17 @@
 
 -include("urlfetch.hrl").
 
+-define(ALLOWED_METHODS, when(Method =:= get) orelse(Method =:= post) orelse(Method =:= head)).
 
-fetch({Id, Method, Url, Payload, Headers}) ->
+
+fetch({Id, Method, Url, Payload, Headers}) ?ALLOWED_METHODS ->
     Record = #cache{id=Id, timestamp=urlfetch_cache:timestamp()},
     process_record(Record),
     spawn(urlfetch_async, fetch,
           [Id, Url, Method, Payload, Headers, ?RETRY_COUNT, ?RETRY_TIMEOUT]),
-    ok.
+    ok;
+fetch(_) ->
+    error.
 
  
 fetch(Id, Url, Method, Payload, Headers, Retry, Sleep) when Retry > 0 ->

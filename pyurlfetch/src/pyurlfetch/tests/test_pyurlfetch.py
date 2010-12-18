@@ -125,6 +125,17 @@ class TestUrlFetch(unittest.TestCase):
             {'Content-Type': 'text/plain', 'X-Custom-Header': 'foobar'},
             decode_headers(encode_headers(headers)))
 
+    def test_error(self):
+        """Tests error handling."""
+
+        from pyurlfetch.urlfetch import DownloadError, URLFetchClient
+
+        client = URLFetchClient()
+
+        self.assertRaises(
+            DownloadError,
+            client.start_fetch, "http://example.com", method="unknown_method")
+
     def test_fetch(self):
         """Testing the low-level URL Fetch Client API."""
 
