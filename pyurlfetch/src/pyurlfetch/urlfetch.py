@@ -81,7 +81,7 @@ def read_int4(s):
     try:
         i4 = int(l4)
         return i4
-    except OverflowError:
+    except OverflowError:   # pragma: no cover
         return l4
 
 
@@ -206,7 +206,7 @@ class URLFetchClient(object):
 
         try:
             headers, body = body.split('\n\n', 1)
-        except ValueError:
+        except ValueError:      # pragma: no cover
             raise DownloadError
 
         return (status_code, body, decode_headers(headers))
