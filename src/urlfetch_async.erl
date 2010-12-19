@@ -8,7 +8,7 @@
 
 
 fetch({Id, Method, Url, Payload, Headers}) ?ALLOWED_METHODS ->
-    timer:sleep(1),
+    timer:sleep(?THROTTLE),
     spawn(urlfetch_async, fetch,
           [Id, Url, Method, Payload, Headers, ?RETRY_COUNT, ?RETRY_TIMEOUT]),
     ok;
