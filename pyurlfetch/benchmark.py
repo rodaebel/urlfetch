@@ -21,39 +21,24 @@ import random
 import sys
 import time
 
-USAGE = "usage: %prog [-h] [limit|offset limit]"
-
-URLs = [
-    "http://blog.typhoonae.org",
-    "http://www.erlang.org",
-    "http://www.trapexit.org",
-    "http://www.python.org",
-    "http://code.google.com",
-    "http://www.w3.org",
-    "http://dev.mysql.com",
-    "http://www.apple.com",
-    "http://www.gnustep.org",
-    "http://developer.twitter.com",
-    "http://code.google.com/p/urlfetch",
-    "http://www.debian.com",
-    "http://git-scm.com",
-    "http://hgbook.red-bean.com",
-    "http://www.sgi.com/tech/stl",
-]
+USAGE = "usage: %prog [-chn] URL [...]"
 
 
-def runUrllib2(urls):
+def runUrllib2(urls, num):
     """Running benchmark for urllib2.
 
     Args:
         urls: List of URLs.
+        num: Number of requests.
     """
     results = []
-    start = time.time()
-    for url in urls:
-        urlopen(url)
-    end = time.time()
-    results.append(round(end-start, 3))
+    for i in range(num):
+        sys.stderr.write('.')
+        start = time.time()
+        for url in urls:
+            urlopen(url)
+        end = time.time()
+        results.append(round(end-start, 3))
     return results
 
 
@@ -61,40 +46,46 @@ def _fetch(url):
     response = urlopen(url).read()
 
 
-def runMultiUrllib2(urls):
+def runMultiUrllib2(urls, num):
     """Running benchmark for concurrent requests with urllib2.
 
     Args:
         urls: List of URLs.
+        num: Number of requests.
     """
     results = []
-    start = time.time()
-    pool = multiprocessing.Pool(len(urls))
-    output = pool.map(_fetch, urls)
-    pool.close()
-    pool.join()
-    end = time.time()
-    results.append(round(end-start, 3))
+    for i in range(num):
+        sys.stderr.write('.')
+        start = time.time()
+        pool = multiprocessing.Pool(len(urls))
+        output = pool.map(_fetch, urls)
+        pool.close()
+        pool.join()
+        end = time.time()
+        results.append(round(end-start, 3))
     return results
 
 
-def runUrlFetch(urls):
+def runUrlFetch(urls, num):
     """Running benchmark for the URL Fetch Service.
 
     Args:
         urls: List of URLs.
+        num: Number of requests.
     """
     results = []
-    client = URLFetchClient()
-    ids = []
-    start = time.time()
     headers = {'User-Agent': 'urlfetch/1.0'}
-    for url in urls:
-        ids.append(client.start_fetch(url, headers=headers))
-    for Id in ids:
-        client.get_result(Id)
-    end = time.time()
-    results.append(round(end-start, 3))
+    client = URLFetchClient()
+    for i in range(num):
+        sys.stderr.write('.')
+        ids = []
+        start = time.time()
+        for url in urls:
+            ids.append(client.start_fetch(url, headers=headers))
+        for Id in ids:
+            client.get_result(Id)
+        end = time.time()
+        results.append(round(end-start, 3))
     client.close()
     return results
 
@@ -103,54 +94,63 @@ if __name__ == "__main__":
 
     op = optparse.OptionParser(usage=USAGE)
 
+    op.add_option("-c", dest="concurrent", metavar="INTEGER",
+                  help="number of concurrent requests (default: %default)",
+                  default=10)
+
+    op.add_option("-n", dest="num_requests", metavar="INTEGER",
+                  help="number of requests (default: %default)",
+                  default=1)
+
+    op.add_option("--skip-synchronous", dest="skip_sync", action="store_true",
+                  help="skip synchronous urllib2.urlopen calls",
+                  default=False)
+
     (options, args) = op.parse_args()
 
-    argc = len(args)
-    urlc = len(URLs)
+    if not args:
+        op.error("At least one argument required")
 
-    offset = 1
-    limit = urlc
+    c = int(options.concurrent)
+    n = int(options.num_requests)
 
-    try:
-        if argc == 1:
-            limit = int(args[0])
-        elif argc == 2:
-            offset, limit = (int(args[0]), int(args[1]))
-    except ValueError, e:
-        op.error(e)
+    urls = args
 
-    if offset > urlc:
-        op.error("out of range")
+    step = c / len(urls)
 
-    end = offset + limit - 1
+    index = 0
 
-    if end > urlc:
-        end = urlc
+    bucket = []
 
-    table = []
+    for i in range(c):
 
-    for i in range(offset, end+1):
+        if float(i)/float(step) == index and index < len(urls):
+            index += 1
 
-        # Shuffle the URLs
-        urls = URLs[:]
-        random.shuffle(urls)
+        bucket.append(urls[index-1])
 
-        # Testing urllib2
-        a = runUrllib2(urls[:i])
+    if not options.skip_sync:
+        # Testing synchronous urllib2
+        A = runUrllib2(bucket, n)
 
-        # Testing concurrent urllib2 requests (multiprocessing)
-        b = runMultiUrllib2(urls[:i])
+    # Testing concurrent urllib2 requests (multiprocessing)
+    B = runMultiUrllib2(bucket, n)
 
-        # Testing the URL Fetch Service (pyurlfetch)
-        c = runUrlFetch(urls[:i])
-
-        table += zip(a, b, c)
-
-        sys.stderr.write('.')
+    # Testing the URL Fetch Service (pyurlfetch)
+    C = runUrlFetch(bucket, n)
 
     sys.stderr.write('\n')
 
-    print("urllib2;multiurllib2;pyurlfetch")
+    if options.skip_sync:
+        table = zip(B, C)
+        averages = (sum(B)/n, sum(C)/n)
+        f = "%.3f;%.3f"
+    else:
+        table = zip(A, B, C)
+        averages = (sum(A)/n, sum(B)/n, sum(C)/n)
+        f = "%.3f;%.3f;%.3f"
 
     for row in table:
-        print("%.3f;%.3f;%.3f" % row)
+        print(f % row)
+    print('---')
+    print(f % averages)
