@@ -67,7 +67,7 @@ def runMultiUrllib2(urls, num):
 
 
 def runUrlFetch(urls, num):
-    """Running benchmark for the URL Fetch Service.
+    """Running benchmark for the URL Fetch service.
 
     Args:
         urls: List of URLs.
@@ -109,7 +109,7 @@ if __name__ == "__main__":
     (options, args) = op.parse_args()
 
     if not args:
-        op.error("At least one argument required")
+        op.error("at least one URL required")
 
     c = int(options.concurrent)
     n = int(options.num_requests)
@@ -130,13 +130,13 @@ if __name__ == "__main__":
         bucket.append(urls[index-1])
 
     if not options.skip_sync:
-        # Testing synchronous urllib2
+        # Testing synchronous urllib2 requests
         A = runUrllib2(bucket, n)
 
     # Testing concurrent urllib2 requests (multiprocessing)
     B = runMultiUrllib2(bucket, n)
 
-    # Testing the URL Fetch Service (pyurlfetch)
+    # Testing the URL Fetch service (pyurlfetch)
     C = runUrlFetch(bucket, n)
 
     sys.stderr.write('\n')
