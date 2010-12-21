@@ -18,6 +18,7 @@ start_client() ->
 start(_Type, _Args) ->
     urlfetch_cache:start(),
     inets:start(),
+    ssl:start(),
     ListenPort = get_app_env(listen_port, ?PORT),
     supervisor:start_link({local, ?MODULE}, ?MODULE,
                           [ListenPort, urlfetch_handler]).
