@@ -16,4 +16,6 @@
 
 -define(EMPTY, <<"">>).
 
+-define(EXPIRATION_INTERVAL, 60).
+
 -record(cache, {id, status_code=200, data=?EMPTY, complete=false, timestamp}).

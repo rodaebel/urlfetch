@@ -79,10 +79,10 @@ store(Record) ->
 
 delete(Id) ->
     error_logger:info_msg("~p Deleting data for ~p.~n", [self(), Id]),
-    case ets:match(cache_table, {Id, '$1', '$2', '$3', '$4'}) of
+    case ets:lookup(cache_table, Id) of
         [] ->
             false;
-        [[Status, Data, Complete, Timestamp]] ->
+        [{_, Status, Data, Complete, Timestamp}] ->
             ets:delete_object(cache_table,
                               {Id, Status, Data, Complete, Timestamp})
     end.
@@ -109,16 +109,12 @@ timestamp() ->
 
 
 flush_expired() ->
-    %% error_logger:info_msg("~p Flushing expired data.~n", [self()]),
-    T = timestamp(),
-    IsExpired = fun([Id, _, _, _, Timestamp]) ->
-        if Timestamp < T - 60 ->
-            delete(Id),
-            true;
+    T = timestamp() - ?EXPIRATION_INTERVAL,
+    S = [{{'$1', '$2', '$3', '$4', '$5'}, [{'<', '$5', {const, T}}], [true]}],
+    N = ets:select_delete(cache_table, S),
+    if N > 0 ->
+        error_logger:info_msg(
+            "~p ~p expired record(s) flushed.~n", [self(), N]);
         true ->
             false
-        end
-    end,
-    Results = ets:match(cache_table, {'$1', '$2', '$3', '$4', '$5'}),
-    lists:map(IsExpired, Results),
-    ok.
+    end.
