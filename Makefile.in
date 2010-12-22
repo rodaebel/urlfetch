@@ -1,15 +1,16 @@
+ERL= @ERLANG@
 PYTHON= @PYTHON@
 
 all:
 	@mkdir -p ebin
-	@(cd src;$(MAKE))
+	@(cd src;$(MAKE) ERL=$(ERL))
 	@(cd pyurlfetch; $(MAKE) PYTHON=$(PYTHON))
 
 edoc:
-	@(cd src;$(MAKE) edoc)
+	@(cd src;$(MAKE) ERL=$(ERL) edoc)
 
 clean:
-	@(cd src;$(MAKE) clean)
+	@(cd src;$(MAKE) ERL=$(ERL) clean)
 
 distclean: clean
 	rm -f config.log Makefile

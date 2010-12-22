@@ -123,6 +123,7 @@ chmod 755 bin/urlfetchd
 #
 log "creating: Makefile\n";
 cat Makefile.in | sed \
+   -e "s,@ERLANG@,${ERL}," \
    -e "s,@PACKAGE@,${PACKAGE}," \
    -e "s,@PYTHON@,${PYTHON}," \
    > Makefile

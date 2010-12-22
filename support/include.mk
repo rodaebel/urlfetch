@@ -3,7 +3,9 @@
 ######################################################################
 ## Erlang
 
-ERL := erl
+ifndef ERL
+    ERL := erl
+endif
 ERLC := $(ERL)c
 
 INCLUDE_DIRS := ../include $(wildcard ../deps/*/include)

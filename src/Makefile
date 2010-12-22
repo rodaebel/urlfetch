@@ -2,10 +2,14 @@ include ../support/include.mk
 
 PROJECT = urlfetch
 
+ifndef ERL
+	ERL := erl
+endif
+
 all: $(EBIN_FILES)
 
 edoc:
-	erl -noshell -pa ../ebin/ -eval "edoc:application($(PROJECT), \".\", [{dir, \"../doc/\"}])" -s init stop
+	$(ERL) -noshell -pa ../ebin/ -eval "edoc:application($(PROJECT), \".\", [{dir, \"../doc/\"}])" -s init stop
 
 debug:
 	$(MAKE) DEBUG=-DDEBUG
