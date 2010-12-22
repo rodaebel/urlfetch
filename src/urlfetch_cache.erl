@@ -51,13 +51,22 @@ loop() ->
                 retry -> Client ! retry
             end
     after 60000 ->
-        flush_expired()
+        purge_expired()
     end,
     loop().
 
 
+%% @spec timestamp() -> integer
+%% @doc  Generates a time stamp.
+timestamp() ->
+    {MegaSecs, Secs, _MicroSecs} = erlang:now(),
+    MegaSecs * 1000000 + Secs.
+
+
 %% Internal API
 
+%% @spec store(Record) -> null
+%% @doc  Stores a cache record.
 store(Record) ->
     Id        = Record#cache.id,
     Status    = Record#cache.status_code,
@@ -73,10 +82,12 @@ store(Record) ->
         [[_, OldData, _]] ->
             ets:insert(
                 cache_table,
-                {Id, Status, <<OldData/binary, Data/binary>>, Complete, Timestamp})
+                {Id, Status, [OldData, Data], Complete, Timestamp})
     end.
 
 
+%% @spec delete(Id) -> null
+%% @doc  Deletes a cache record.
 delete(Id) ->
     error_logger:info_msg("~p Deleting data for ~p.~n", [self(), Id]),
     case ets:lookup(cache_table, Id) of
@@ -88,8 +99,9 @@ delete(Id) ->
     end.
 
 
+%% @spec loop() -> null
+%% @doc  Recursion loop for our cache server.
 fetch(Id) ->
-    %% error_logger:info_msg("~p Looking up data for ~p.~n", [self(), Id]),
     case ets:lookup(cache_table, Id) of
         [] ->
             not_found;
@@ -103,18 +115,13 @@ fetch(Id) ->
     end.
 
 
-timestamp() ->
-    {MegaSecs, Secs, _MicroSecs} = erlang:now(),
-    MegaSecs * 1000000 + Secs.
-
-
-flush_expired() ->
+purge_expired() ->
     T = timestamp() - ?EXPIRATION_INTERVAL,
     S = [{{'$1', '$2', '$3', '$4', '$5'}, [{'<', '$5', {const, T}}], [true]}],
     N = ets:select_delete(cache_table, S),
     if N > 0 ->
         error_logger:info_msg(
-            "~p ~p expired record(s) flushed.~n", [self(), N]);
+            "~p ~p expired record(s) purged.~n", [self(), N]);
         true ->
             false
     end.

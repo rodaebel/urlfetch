@@ -1,6 +1,6 @@
 -module(urlfetch_async).
 
--export([fetch/1, fetch/7, process_record/1, get_result/1, flush/1]).
+-export([fetch/1, fetch/7, process_record/1, get_result/1, purge/1]).
 
 -include("urlfetch.hrl").
 
@@ -47,7 +47,7 @@ fetch(Id, Url, Method, Payload, Headers, Retry, Sleep) when Retry > 0 ->
     end;
 fetch(Id, _, _, _, _, Retry, _) when Retry =< 0 ->
     error_logger:info_msg("~p Giving up on ~p.~n", [self(), Id]),
-    flush(Id),
+    purge(Id),
     {error, no_more_retry}.
 
 
@@ -109,6 +109,6 @@ get_result(Id) ->
     end.
 
 
-flush(Id) ->
+purge(Id) ->
     urlfetch_cache ! {delete, Id, self()},
     ok.

@@ -28,6 +28,7 @@ init([]) ->
     {ok, 'AWAIT_SOCKET', #state{}}.
 
 
+%% Client connects
 'AWAIT_SOCKET'({socket_ready, Socket}, State) when is_port(Socket) ->
     inet:setopts(Socket, [binary, {active, once}]),
     {ok, {IP, _Port}} = inet:peername(Socket),
@@ -44,8 +45,7 @@ init([]) ->
         {request, <<"FETCH_ASYNC">>, MethodString, Url, Payload, Headers} ->
             Id = urlfetch_uuid:new(),
             error_logger:info_msg("~p Fetching ~p.~n", [self(), Url]),
-            {ok, [{atom, 1, Method}], 1} = erl_scan:string(
-                                                binary_to_list(MethodString)),
+            Method = get_method(MethodString),
             Result = urlfetch_async:fetch({
                 Id, Method, binary_to_list(Url), binary_to_list(Payload),
                 urlfetch_http:decode_headers(Headers)}),
@@ -60,26 +60,26 @@ init([]) ->
         {request, <<"GET_RESULT">>, Id} ->
             case get_result(Id) of
                 {result, Result} ->
-                    ok = gen_tcp:send(S, [pack_result(Result), "\tEOF\n"]),
-                    spawn(urlfetch_async, flush, [Id]);
+                    gen_tcp:send(S, [pack_result(Result), "\tEOF\n"]),
+                    spawn(urlfetch_async, purge, [Id]);
                 {error, not_found} ->
-                    ok = gen_tcp:send(S, pack_result({404, "NOT_FOUND"}))
+                    gen_tcp:send(S, pack_result({404, "NOT_FOUND"}))
             end,
             {next_state, 'AWAIT_DATA', State, ?TIMEOUT};
         {request, <<"GET_RESULT_NOWAIT">>, Id} ->
-            case get_result(Id, nowait) of
+            case get_result({nowait, Id}) of
                 {result, Result} ->
-                    ok = gen_tcp:send(S, [pack_result(Result), "\tEOF\n"]),
-                    spawn(urlfetch_async, flush, [Id]);
+                    gen_tcp:send(S, [pack_result(Result), "\tEOF\n"]),
+                    spawn(urlfetch_async, purge, [Id]);
                 {error, not_found} ->
-                    ok = gen_tcp:send(S, pack_result({404, "NOT_FOUND"}))
+                    gen_tcp:send(S, pack_result({404, "NOT_FOUND"}))
             end,
             {next_state, 'AWAIT_DATA', State, ?TIMEOUT};
         {request, _, _} ->
-            ok = gen_tcp:send(S, <<"ERROR">>),
+            gen_tcp:send(S, <<"ERROR">>),
             {next_state, 'AWAIT_DATA', State, ?TIMEOUT};
         {noreply, _} ->
-            ok = gen_tcp:send(S, <<"ERROR">>),
+            gen_tcp:send(S, <<"ERROR">>),
             {stop, normal, State}
     end;
 'AWAIT_DATA'(timeout, State) ->
@@ -116,6 +116,20 @@ code_change(_OldVsn, StateName, StateData, _Extra) ->
     {ok, StateName, StateData}.
 
 
+%% Internal API
+
+get_method(String) ->
+    {ok, [{atom, 1, Method}], 1} = erl_scan:string(binary_to_list(String)),
+    Method.
+
+
+get_result({nowait, Id}) ->
+    case urlfetch_async:get_result(Id) of
+        {result, Result} ->
+            {result, Result};
+        {error, _} ->
+            {error, not_found}
+    end;
 get_result(Id) ->
     case urlfetch_async:get_result(Id) of
         {result, Result} ->
@@ -124,13 +138,6 @@ get_result(Id) ->
             timer:sleep(50),
             get_result(Id);
         {error, not_found} ->
-            {error, not_found}
-    end.
-get_result(Id, nowait) ->
-    case urlfetch_async:get_result(Id) of
-        {result, Result} ->
-            {result, Result};
-        {error, _} ->
             {error, not_found}
     end.
 
@@ -143,4 +150,4 @@ pack_result(Result) ->
         false ->
             Data = list_to_binary(Body)
     end,
-    [<<Code:32>>, Data].
+    <<Code:32, Data/binary>>.
