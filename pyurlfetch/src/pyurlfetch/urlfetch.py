@@ -154,11 +154,18 @@ class URLFetchClient(object):
 
         headers = encode_headers(headers)
 
-        self._socket.send(command("FETCH_ASYNC", method, url, payload, headers))
+        cmd_seq = command("FETCH_ASYNC", method, url, payload, headers)
+
+        sent = 0
+
+        try:
+            sent = self._socket.send(cmd_seq)
+        except socket.error:    # pragma: no cover
+            raise DownloadError
 
         res = self._socket.recv(32)
 
-        if res == ERROR:
+        if not sent or not res or res == ERROR:
             raise DownloadError 
 
         logging.debug("Fetching %s - %s", url, res)
