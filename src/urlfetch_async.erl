@@ -4,10 +4,8 @@
 
 -include("urlfetch.hrl").
 
--define(ALLOWED_METHODS, when(Method =:= get) orelse(Method =:= post) orelse(Method =:= head) orelse(Method =:= put) orelse(Method =:= delete)).
 
-
-fetch({Id, Method, Url, Payload, Headers}) ?ALLOWED_METHODS ->
+fetch({Id, Method, Url, Payload, Headers}) when(Method =:= get) orelse(Method =:= post) orelse(Method =:= head) orelse(Method =:= put) orelse(Method =:= delete) ->
     timer:sleep(?THROTTLE),
     spawn(urlfetch_async, fetch,
           [Id, Url, Method, Payload, Headers, ?RETRY_COUNT, ?RETRY_TIMEOUT]),

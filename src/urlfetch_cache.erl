@@ -99,8 +99,8 @@ delete(Id) ->
     end.
 
 
-%% @spec loop() -> null
-%% @doc  Recursion loop for our cache server.
+%% @spec fetch(Id) -> any()
+%% @doc  Fetches a cache record by Id.
 fetch(Id) ->
     case ets:lookup(cache_table, Id) of
         [] ->
@@ -115,6 +115,8 @@ fetch(Id) ->
     end.
 
 
+%% @spec purge_expired() -> null
+%% @doc  Purges expired cache records.
 purge_expired() ->
     T = timestamp() - ?EXPIRATION_INTERVAL,
     S = [{{'$1', '$2', '$3', '$4', '$5'}, [{'<', '$5', {const, T}}], [true]}],
