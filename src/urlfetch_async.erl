@@ -98,15 +98,18 @@ receive_chunk(Id, ReqId) ->
 get_result(Id) ->
     urlfetch_cache ! {fetch, Id, self()},
     receive
-        {ok, Data} ->
-            {result, Data};
-        retry ->
-            {error, retry};
-        not_found ->
-            {error, not_found}
+        {Status, Result} ->
+            {Status, Result};
+        _ ->
+            {error, unknown}
     end.
 
 
 purge(Id) ->
     urlfetch_cache ! {delete, Id, self()},
-    ok.
+    receive
+        true ->
+            ok;
+        false ->
+            error
+    end.

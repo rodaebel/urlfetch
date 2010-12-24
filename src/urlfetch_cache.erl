@@ -44,11 +44,10 @@ loop() ->
             end;
         {fetch, Id, Client} ->
             case fetch(Id) of
-                {ok, Data} ->
-                    Client ! {ok, Data};
-                not_found ->
-                    Client ! not_found;
-                retry -> Client ! retry
+                {result, Result} ->
+                    Client ! {result, Result};
+                {error, Reason} ->
+                    Client ! {error, Reason}
             end
     after 60000 ->
         purge_expired()
@@ -104,13 +103,13 @@ delete(Id) ->
 fetch(Id) ->
     case ets:lookup(cache_table, Id) of
         [] ->
-            not_found;
+            {error, not_found};
         [{_, Status, Data, Complete, _}] ->
             case Complete of
                 true ->
-                    {ok, {Status, Data}};
+                    {result, {Status, Data}};
                 false ->
-                    retry
+                    {error, retry}
             end
     end.
 
