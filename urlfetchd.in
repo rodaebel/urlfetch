@@ -1,7 +1,7 @@
 #!/bin/sh
 cd `dirname $0`;
-CWD=`dirname $PWD`;
-cd $PWD;
+CWD=`dirname "$PWD" | sed -e 's, ,\\\\ ,g'`;
+cd "$PWD";
 BASENAME=`basename $0`
 MONITOR="false"
 DETACHED_OPTION=""
@@ -62,14 +62,14 @@ done
 
 ERL_OPTS="
     -setcookie $COOKIE \
-    -pa $CWD/ebin $CWD/lib/mochiweb/ebin \
+    -pa $CWD/ebin \
     -sname urlfetch \
     -s urlfetch"
 
 if [ "$MONITOR" = "false" ]; then
-    exec $ERL $ERL_OPTS $DETACHED_OPTION start -noshell -s urlfetch
+    eval $ERL $ERL_OPTS $DETACHED_OPTION start -noshell
 else
-    exec $ERL $ERL_OPTS -boot start_sasl -run appmon start -s urlfetch
+    eval $ERL $ERL_OPTS -boot start_sasl -run appmon start
 fi
 
 exit 0;
