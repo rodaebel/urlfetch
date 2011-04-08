@@ -13,13 +13,17 @@ test: compile
 	@$(ERL) -pa ebin -eval "eunit:test({application,$(APP)})" \
 	-noshell -s init stop
 
-edoc:
-	@(cd src;$(MAKE) ERL=$(ERL) edoc)
+docs:
+	@$(ERL) -noshell -run edoc_run application 'urlfetch' '"."' \
+    '[{private, true}]'
+
+clean-docs:
+	rm -f doc/edoc-info doc/*.html doc/*.css doc/*.png
 
 clean:
 	@(cd src;$(MAKE) ERL=$(ERL) clean)
 
-distclean: clean
+distclean: clean clean-docs
 	rm -f config.log Makefile
 	rm -rf bin
 	rm -rf ebin

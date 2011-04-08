@@ -5,6 +5,8 @@
 -include("urlfetch.hrl").
 
 
+%% @spec fetch({Id, Method, Url, Payload, Headers}) -> ok | error
+%% @doc  Fetches data from an HTTP server.
 fetch({Id, Method, Url, Payload, Headers}) when(Method =:= get) orelse(Method =:= post) orelse(Method =:= head) orelse(Method =:= put) orelse(Method =:= delete) ->
     timer:sleep(?THROTTLE),
     spawn(urlfetch_async, fetch,
