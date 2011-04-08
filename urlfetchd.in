@@ -1,7 +1,5 @@
 #!/bin/sh
-cd `dirname $0`;
-CWD=`dirname "$PWD" | sed -e 's, ,\\\\ ,g'`;
-cd "$PWD";
+
 BASENAME=`basename $0`
 MONITOR="false"
 DETACHED_OPTION=""
@@ -60,16 +58,20 @@ EOF
    esac
 done
 
+cd `dirname $0`;
+ROOT=`dirname "$PWD" | sed -e 's, ,\\\\ ,g'`;
+cd "$PWD";
+
 ERL_OPTS="
     -setcookie $COOKIE \
-    -pa $CWD/ebin \
+    -pa $ROOT/ebin \
     -sname urlfetch \
     -s urlfetch"
 
 if [ "$MONITOR" = "false" ]; then
     eval $ERL $ERL_OPTS $DETACHED_OPTION start -noshell
 else
-    eval $ERL $ERL_OPTS -boot start_sasl -run appmon start
+    eval $ERL $ERL_OPTS -boot start_sasl -run appmon
 fi
 
 exit 0;

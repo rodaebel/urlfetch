@@ -1,10 +1,17 @@
 ERL= @ERLANG@
 PYTHON= @PYTHON@
+APP= "urlfetch_service"
 
-all:
+all: compile
+
+compile:
 	@mkdir -p ebin
 	@(cd src;$(MAKE) ERL=$(ERL))
 	@(cd pyurlfetch; $(MAKE) PYTHON=$(PYTHON))
+
+test: compile
+	@$(ERL) -pa ebin -eval "eunit:test({application,$(APP)})" \
+	-noshell -s init stop
 
 edoc:
 	@(cd src;$(MAKE) ERL=$(ERL) edoc)

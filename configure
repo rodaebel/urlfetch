@@ -1,8 +1,8 @@
 #!/bin/sh
 
 BASENAME=`basename $0`
-
-. ./config.ini
+PACKAGE=urlfetch
+LOGFILE=config.log
 
 usage() {
    echo "Usage: $BASENAME [options]";
@@ -96,29 +96,6 @@ PYTHON_VERSION=`${PYTHON} -c "import sys; print ('%s.%s.%s'%sys.version_info[:3]
 log "${PYTHON_VERSION}\n"
 
 #
-# Create bin directory
-#
-mkdir -p bin
-
-#
-# Create test script
-#
-log "creating: bin/test\n";
-cat test.in | sed \
-   -e "s,@ERLANG@,${ERL}," \
-   > bin/test
-chmod 755 bin/test
-
-#
-# Create urlfetch script
-#
-log "creating: bin/urlfetchd\n";
-cat urlfetchd.in | sed \
-   -e "s,@ERLANG@,${ERL}," \
-   > bin/urlfetchd
-chmod 755 bin/urlfetchd
-
-#
 # Create makefile
 #
 log "creating: Makefile\n";
@@ -127,5 +104,15 @@ cat Makefile.in | sed \
    -e "s,@PACKAGE@,${PACKAGE}," \
    -e "s,@PYTHON@,${PYTHON}," \
    > Makefile
+
+#
+# Create urlfetch script
+#
+log "creating: bin/urlfetchd\n";
+mkdir -p bin
+cat urlfetchd.in | sed \
+   -e "s,@ERLANG@,${ERL}," \
+   > bin/urlfetchd
+chmod 755 bin/urlfetchd
 
 exit 0;
