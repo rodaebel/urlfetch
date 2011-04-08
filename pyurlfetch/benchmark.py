@@ -23,6 +23,10 @@ import time
 
 USAGE = "usage: %prog [-chn] URL [...]"
 
+DEFAULT_CONCURRENT = 10
+
+DEFAULT_NUM_REQUESTS = 1
+
 
 def runUrllib2(urls, num):
     """Running benchmark for urllib2.
@@ -96,11 +100,11 @@ if __name__ == "__main__":
 
     op.add_option("-c", dest="concurrent", metavar="INTEGER",
                   help="number of concurrent requests (default: %default)",
-                  default=10)
+                  default=DEFAULT_CONCURRENT)
 
     op.add_option("-n", dest="num_requests", metavar="INTEGER",
                   help="number of requests (default: %default)",
-                  default=1)
+                  default=DEFAULT_NUM_REQUESTS)
 
     op.add_option("--skip-synchronous", dest="skip_sync", action="store_true",
                   help="skip synchronous urllib2.urlopen calls",
@@ -113,6 +117,9 @@ if __name__ == "__main__":
 
     c = int(options.concurrent)
     n = int(options.num_requests)
+
+    print("Starting benchmark (concurrency level: %i,"
+          " number of requests: %i)" % (c, n))
 
     urls = args
 
@@ -144,13 +151,14 @@ if __name__ == "__main__":
     if options.skip_sync:
         table = zip(B, C)
         averages = (sum(B)/n, sum(C)/n)
-        f = "%.3f;%.3f"
+        f = "%.3f\t%.3f"
     else:
         table = zip(A, B, C)
         averages = (sum(A)/n, sum(B)/n, sum(C)/n)
-        f = "%.3f;%.3f;%.3f"
+        f = "%.3f\t%.3f\t%.3f"
 
+    print("single\tmulti\turlfetch")
     for row in table:
         print(f % row)
-    print('---')
+    print("---")
     print(f % averages)
