@@ -245,7 +245,7 @@ class TestUrlFetch(unittest.TestCase):
         client = URLFetchClient()
 
         fid = client.start_fetch(
-            "http://erlang.org/images/erlang-logo.png",
+            "http://www.erlang.org/images/banner.jpg",
             method="head", headers={"User-Agent": "pyurlfetch/0.1.0"})
 
         client.close()
