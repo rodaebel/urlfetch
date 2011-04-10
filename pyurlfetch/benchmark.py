@@ -152,12 +152,13 @@ if __name__ == "__main__":
         table = zip(B, C)
         averages = (sum(B)/n, sum(C)/n)
         f = "%.3f\t%.3f"
+        print("multi\turlfetch")
     else:
         table = zip(A, B, C)
         averages = (sum(A)/n, sum(B)/n, sum(C)/n)
         f = "%.3f\t%.3f\t%.3f"
+        print("single\tmulti\turlfetch")
 
-    print("single\tmulti\turlfetch")
     for row in table:
         print(f % row)
     print("---")
