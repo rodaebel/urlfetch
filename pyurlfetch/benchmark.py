@@ -106,8 +106,8 @@ if __name__ == "__main__":
                   help="number of requests (default: %default)",
                   default=DEFAULT_NUM_REQUESTS)
 
-    op.add_option("--skip-synchronous", dest="skip_sync", action="store_true",
-                  help="skip synchronous urllib2.urlopen calls",
+    op.add_option("--skip-serial", dest="skip_serial", action="store_true",
+                  help="skip serial urllib2.urlopen calls",
                   default=False)
 
     (options, args) = op.parse_args()
@@ -136,8 +136,8 @@ if __name__ == "__main__":
 
         bucket.append(urls[index-1])
 
-    if not options.skip_sync:
-        # Testing synchronous urllib2 requests
+    if not options.skip_serial:
+        # Testing serial urllib2 requests
         A = runUrllib2(bucket, n)
 
     # Testing concurrent urllib2 requests (multiprocessing)
@@ -148,7 +148,7 @@ if __name__ == "__main__":
 
     sys.stderr.write('\n')
 
-    if options.skip_sync:
+    if options.skip_serial:
         table = zip(B, C)
         averages = (sum(B)/n, sum(C)/n)
         f = "%.3f\t%.3f"
@@ -157,7 +157,7 @@ if __name__ == "__main__":
         table = zip(A, B, C)
         averages = (sum(A)/n, sum(B)/n, sum(C)/n)
         f = "%.3f\t%.3f\t%.3f"
-        print("single\tmulti\turlfetch")
+        print("serial\tmulti\turlfetch")
 
     for row in table:
         print(f % row)
