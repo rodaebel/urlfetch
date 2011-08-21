@@ -29,12 +29,15 @@ parse(Bin) ->
 %% Unit tests.
 parse_test() ->
     %% Correct protocol
-    ?assert(parse(<<4, "TEST", 3, "foo", 3, "bar", 2, ":)", "test">>) =:=
-            {request, <<"TEST">>, <<"foo">>, <<"bar">>, <<":)">>, <<"test">>}),
+    ?assert(parse(<<4, "TEST", 3, "foo", 3, "bar", 21,
+                    "A much longer string.", "test">>) =:=
+            {request, <<"TEST">>, <<"foo">>, <<"bar">>,
+                      <<"A much longer string.">>,
+                      <<"test">>}),
     ?assert(parse(<<4, "TEST", 3, "foo", 3, "bar", "test">>) =:=
             {request, <<"TEST">>, <<"foo">>, <<"bar">>, <<"test">>}),
     ?assert(parse(<<4, "TEST", 3, "foo", "bar">>) =:=
             {request, <<"TEST">>, <<"foo">>, <<"bar">>}),
-    ?assert(parse(<<4,"TEST","foo">>) =:= {request, <<"TEST">>, <<"foo">>}),
+    ?assert(parse(<<4, "TEST", "foo">>) =:= {request, <<"TEST">>, <<"foo">>}),
     %% Bogus data
     ?assert(parse(<<"foobar">>) =:= {noreply, <<"foobar">>}).
